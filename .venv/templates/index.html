@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вычисление объема</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .field { margin-top: 10px; }
+        .param-group { margin-top: 10px; }
+        .param { display: inline-block; margin-right: 20px; }
+        #result, .error { margin-top: 15px; font-size: 1.1em; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Вычисление объема геометрической фигуры</h1>
+    <form method="post" novalidate>
+        <div class="field">
+            <label for="shape">Фигура:</label>
+            <select name="shape" id="shape" onchange="showParams()">
+                <option value="" disabled {{ 'selected' if request.values.get('shape')==None else '' }}>— выберите —</option>
+                {% for key, name in shapes.items() %}
+                    <option value="{{ key }}" {% if request.values.get('shape')==key %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="params">
+            {% for key, params in shape_params.items() %}
+            <div class="param-group" id="group-{{ key }}" style="display:none;">
+                {% for p in params %}
+                <div class="param">
+                    <label for="{{ p }}">{{ param_names[p] }}:</label>
+                    <input id="{{ p }}" type="number" step="any"
+                           name="{{ p }}"
+                           min="{{ min_value }}" max="{{ max_value }}"
+                           value="{{ request.values.get(p,'') }}">
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            <label for="precision">Точность (зн. после точ.):</label>
+            <input id="precision" type="number" name="precision"
+                   min="0" step="1"
+                   value="{{ request.values.get('precision','2') }}">
+        </div>
+
+        <button type="submit" style="margin-top:15px;">Вычислить</button>
+
+        {% if error %}
+        <div class="error">{{ error|safe }}</div>
+        {% endif %}
+
+        {% if result is not none %}
+        <div id="result"><strong>Результат:</strong> {{ result }}</div>
+        {% endif %}
+    </form>
+
+    <script>
+        function showParams() {
+            const sel = document.getElementById('shape').value;
+            document.querySelectorAll('.param-group').forEach(div => {
+                const inputs = div.querySelectorAll('input');
+                if (div.id === 'group-' + sel) {
+                    div.style.display = 'block';
+                    inputs.forEach(i => i.disabled = false);
+                } else {
+                    div.style.display = 'none';
+                    inputs.forEach(i => i.disabled = true);
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', showParams);
+    </script>
+</body>
+</html>
